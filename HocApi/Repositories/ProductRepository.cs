@@ -1,4 +1,4 @@
-﻿using HocApi.Data;
+using HocApi.Data;
 using HocApi.Interfaces.Repository;
 using HocApi.Models;
 

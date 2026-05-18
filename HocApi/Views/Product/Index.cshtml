@@ -1,0 +1,740 @@
+@model HocApi.ViewModels.ProductViewModel
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<style>
+    /* Scoped modern style framework using Plus Jakarta Sans */
+    @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+        --primary: #6366f1;
+        --primary-hover: #4f46e5;
+        --primary-light: #e0e7ff;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --font-sans: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Core container wrapper */
+    .product-app-container {
+        font-family: var(--font-sans);
+        color: var(--text-main);
+        max-width: 1100px;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem;
+    }
+
+    /* Modern header panel */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -2px rgba(148, 163, 184, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-bottom: 2rem;
+    }
+
+    .header-title h2 {
+        margin: 0 0 0.35rem 0;
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+    }
+
+    .header-title p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* Styled buttons */
+    .btn-add-product {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--primary);
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-add-product:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-add-product:active {
+        transform: translateY(0);
+    }
+
+    /* Product list card */
+    .table-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px -10px rgba(148, 163, 184, 0.1);
+        overflow: hidden;
+    }
+
+    /* Table styling */
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .modern-table th {
+        background-color: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .modern-table td {
+        padding: 1.25rem 1.5rem;
+        font-size: 0.925rem;
+        color: #334155;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
+    }
+
+    .modern-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .modern-table tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    /* Visual badges */
+    .badge-id {
+        font-family: monospace;
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .badge-price {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .badge-qty {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .badge-qty.instock {
+        background-color: #ecfdf5;
+        color: #065f46;
+    }
+
+    .badge-qty.lowstock {
+        background-color: #fff7ed;
+        color: #9a3412;
+    }
+
+    .badge-qty.outofstock {
+        background-color: #fef2f2;
+        color: #991b1b;
+    }
+
+    /* Table actions buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit {
+        background-color: #eff6ff;
+        color: #2563eb;
+    }
+
+    .btn-edit:hover {
+        background-color: #2563eb;
+        color: #ffffff;
+    }
+
+    .btn-delete {
+        background-color: #fef2f2;
+        color: #dc2626;
+    }
+
+    .btn-delete:hover {
+        background-color: #dc2626;
+        color: #ffffff;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-content {
+        background-color: #ffffff;
+        width: 100%;
+        max-width: 500px;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        transform: scale(0.9) translateY(20px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        overflow: hidden;
+    }
+
+    .modal-overlay.active .modal-content {
+        transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+        padding: 1.25rem 1.75rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+    }
+
+    .modal-close:hover {
+        color: #0f172a;
+    }
+
+    .modal-body {
+        padding: 1.75rem;
+    }
+
+    /* Modal Form styling */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.925rem;
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-main);
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+        font-family: var(--font-sans);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+    }
+
+    .btn-secondary {
+        background-color: #f1f5f9;
+        color: #475569;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .btn-submit {
+        background-color: var(--success);
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-submit:hover {
+        background-color: #059669;
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Empty state card */
+    .empty-state {
+        padding: 4.5rem 2rem;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 56px;
+        height: 56px;
+        background-color: #f1f5f9;
+        color: var(--text-muted);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        transition: transform 0.3s ease;
+    }
+
+    .empty-state:hover .empty-state-icon {
+        transform: scale(1.08) rotate(5deg);
+        color: var(--primary);
+        background-color: var(--primary-light);
+    }
+
+    .empty-state h3 {
+        margin: 0 0 0.35rem 0;
+        font-size: 1.1rem;
+        color: #334155;
+        font-weight: 600;
+    }
+
+    .empty-state p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    /* Toast Notification system */
+    .toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .toast {
+        background-color: #ffffff;
+        border-left: 4px solid var(--success);
+        color: var(--text-main);
+        padding: 0.85rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 280px;
+        transform: translateX(120%);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid var(--border-color);
+    }
+
+    .toast.show {
+        transform: translateX(0);
+    }
+
+    .toast-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #ecfdf5;
+        color: var(--success);
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="product-app-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-title">
+            <h2>Danh Sách Sản Phẩm</h2>
+        </div>
+        <button class="btn-add-product" onclick="openModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Thêm sản phẩm
+        </button>
+    </div>
+
+    <!-- Product Table Card -->
+    <div class="table-card">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%">Mã sản phẩm</th>
+                    <th style="width: 35%">Tên sản phẩm</th>
+                    <th style="width: 20%">Đơn giá</th>
+                    <th style="width: 18%">Số lượng</th>
+                    <th style="width: 12%">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody">
+                <!-- Initialized dynamically to avoid hardcoded virtual data -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Product Modal Overlay -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Thêm Sản Phẩm Mới</h3>
+            <button class="modal-close" onclick="closeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="name">Tên sản phẩm</label>
+                    <input type="text" id="name" class="form-control" placeholder="Nhập tên sản phẩm..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Giá sản phẩm (VNĐ)</label>
+                    <input type="number" id="price" min="0" step="any" class="form-control" placeholder="Nhập giá..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Số lượng</label>
+                    <input type="number" id="quantity" min="0" class="form-control" placeholder="Nhập số lượng..." required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Hủy bỏ</button>
+                    <button type="submit" class="btn-submit">Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State to hold newly added products dynamically
+    const products = [];
+    let nextId = 1;
+
+    // Modal Control Functions
+    function openModal() {
+        const modal = document.getElementById('productModal');
+        modal.classList.add('active');
+        document.getElementById('name').focus();
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('productModal');
+        modal.classList.remove('active');
+    }
+
+    // Modal click-outside handler
+    document.getElementById('productModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Helper to escape HTML characters
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Re-render Table based on internal state
+    function updateProductTable() {
+        const tbody = document.getElementById('productTableBody');
+        
+        if (products.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                            </div>
+                            <h3>Chưa có sản phẩm nào</h3>
+                            <p>Nhấp vào nút <strong>"Thêm sản phẩm"</strong> để thêm sản phẩm mới của bạn.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = products.map((product) => {
+            const formattedPrice = new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(product.price);
+
+            let qtyBadgeClass = 'instock';
+            let qtyText = `Còn hàng (${product.quantity})`;
+
+            if (product.quantity <= 0) {
+                qtyBadgeClass = 'outofstock';
+                qtyText = 'Hết hàng';
+            } else if (product.quantity < 5) {
+                qtyBadgeClass = 'lowstock';
+                qtyText = `Sắp hết (${product.quantity})`;
+            }
+
+            return `
+                <tr id="product-row-${product.id}">
+                    <td><span class="badge-id">SP-${String(product.id).padStart(4, '0')}</span></td>
+                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(product.name)}</td>
+                    <td><span class="badge-price">${formattedPrice}</span></td>
+                    <td><span class="badge-qty ${qtyBadgeClass}">${qtyText}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-edit" title="Sửa sản phẩm" onclick="editProduct(${product.id})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-delete" title="Xóa sản phẩm" onclick="deleteProduct(${product.id})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Modern Toast Notification Helper
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('toastContainer') || (() => {
+            const c = document.createElement('div');
+            c.id = 'toastContainer';
+            c.className = 'toast-container';
+            document.body.appendChild(c);
+            return c;
+        })();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        if (type === 'danger') {
+            toast.style.borderLeftColor = 'var(--danger)';
+        }
+
+        const iconSvg = type === 'success' 
+            ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+
+        const iconBgColor = type === 'success' ? '#ecfdf5' : '#fef2f2';
+        const iconColor = type === 'success' ? 'var(--success)' : 'var(--danger)';
+
+        toast.innerHTML = `
+            <div class="toast-icon" style="background-color: ${iconBgColor}; color: ${iconColor};">
+                ${iconSvg}
+            </div>
+            <div style="font-size: 0.875rem; font-weight: 600;">${message}</div>
+        `;
+
+        container.appendChild(toast);
+        
+        // Slide in
+        setTimeout(() => toast.classList.add('show'), 15);
+
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // Placeholder actions for CRUD (User will fully customize later)
+    function editProduct(id) {
+        showNotification(`Chức năng Sửa cho sản phẩm SP-${String(id).padStart(4, '0')} sẽ được xử lý tại CRUD backend!`, 'success');
+    }
+
+    function deleteProduct(id) {
+        const index = products.findIndex(p => p.id === id);
+        if (index !== -1) {
+            if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm SP-${String(id).padStart(4, '0')}?`)) {
+                products.splice(index, 1);
+                updateProductTable();
+                showNotification(`Đã xóa sản phẩm thành công!`, 'success');
+            }
+        }
+    }
+
+    // Submit product form via AJAX
+    document.getElementById('productForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // 1. Gather form values
+        const nameVal = document.getElementById('name').value.trim();
+        const priceVal = parseFloat(document.getElementById('price').value);
+        const quantityVal = parseInt(document.getElementById('quantity').value);
+
+        if (!nameVal || isNaN(priceVal) || isNaN(quantityVal)) {
+            showNotification("Vui lòng điền đầy đủ và đúng thông tin!", "danger");
+            return;
+        }
+
+        const productData = {
+            name: nameVal,
+            price: priceVal,
+            quantity: quantityVal
+        };
+
+        // 2. AJAX Fetch call
+        fetch('/product/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Lỗi mạng hoặc server trả về lỗi!");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Success: close modal, clear inputs, toast notification, dynamic append
+                closeModal();
+                document.getElementById('productForm').reset();
+                showNotification(data.message || "Đã thêm sản phẩm thành công!");
+                
+                // Add to internal list state to display instantly in table
+                products.push({
+                    id: nextId++,
+                    name: productData.name,
+                    price: productData.price,
+                    quantity: productData.quantity
+                });
+                updateProductTable();
+            } else {
+                showNotification(data.message || "Thêm sản phẩm thất bại!", "danger");
+            }
+        })
+        .catch(error => {
+            console.error('AJAX Error:', error);
+            showNotification("Không thể kết nối đến server hoặc có lỗi xảy ra!", "danger");
+        });
+    });
+
+    // Initialize layout: starts empty
+    updateProductTable();
+</script>

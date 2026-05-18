@@ -1,4 +1,4 @@
-﻿using HocApi.Models;
+using HocApi.Models;
 
 namespace HocApi.Interfaces.Repository
 {

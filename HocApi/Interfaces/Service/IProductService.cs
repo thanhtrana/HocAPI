@@ -1,4 +1,4 @@
-﻿using HocApi.ViewModels;
+using HocApi.ViewModels;
 
 namespace HocApi.Interfaces.Service
 {
