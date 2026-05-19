@@ -1,6 +1,8 @@
 using HocApi;
 using HocApi.Data;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +16,11 @@ builder.Services.AddDbContext<Db>(options =>
 // 3. ĐĂNG KÝ TOÀN BỘ REPOSITORY VÀ SERVICE QUA FILE GOM NHÓM
 builder.Services.AddProjectServices();
 
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 var app = builder.Build();
 
-app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+    );
 app.Run();

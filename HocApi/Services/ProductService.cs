@@ -1,7 +1,8 @@
-﻿using HocApi.Interfaces.Repository;
+using HocApi.Interfaces.Repository;
 using HocApi.Interfaces.Service;
 using HocApi.Models;
 using HocApi.ViewModels;
+using HocApi.ViewModels.Product;
 
 namespace HocApi.Services
 {
@@ -13,10 +14,11 @@ namespace HocApi.Services
             _productRepository = productRepository;
         }
 
-        public async Task<bool> AddProductAsync(ProductViewModel model)
+        public async Task<bool> AddProductAsync(AddProductViewModel model)
         {
 
-            if (string.IsNullOrEmpty(model.Name)){
+            if (string.IsNullOrEmpty(model.Name))
+            {
                 return false;
             }
 
@@ -34,6 +36,21 @@ namespace HocApi.Services
 
         }
 
+        public async Task<IEnumerable<ViewProductViewModel>> GetAllProductAsync()
+        {
+            var products = await _productRepository.GetAllAsync();
+
+            var propductViewModels = products.Select(p => new ViewProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Quantity = p.Quantity
+            });
+
+            return propductViewModels;
+
+        }
 
 
     }
