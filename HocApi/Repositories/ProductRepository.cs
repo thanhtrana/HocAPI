@@ -1,6 +1,7 @@
 using HocApi.Data;
 using HocApi.Interfaces.Repository;
 using HocApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HocApi.Repositories
 {
@@ -16,7 +17,12 @@ namespace HocApi.Repositories
         {
             await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
-           
+
+        }
+
+        public async Task<IEnumerable<Product>> GetAllAsync()
+        {
+            return await _context.Products.ToListAsync();
         }
 
     }

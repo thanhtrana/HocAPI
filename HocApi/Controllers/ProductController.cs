@@ -24,7 +24,7 @@ namespace HocApi.Controllers
         }
 
         [HttpPost("create")]// Đường dẫn đầy đủ: POST api/product/create
-        public async Task<IActionResult> CreateProduct([FromBody] ProductViewModel model)
+        public async Task<IActionResult> CreateProduct([FromBody] AddProductViewModel model)
         {
             try
             {
@@ -52,6 +52,21 @@ namespace HocApi.Controllers
             }
 
         }
+
+        [HttpGet("list-service-side")]
+        public async Task<IActionResult> GetAllProductAsync()
+        {
+            try
+            {
+                var products = await _productService.GetAllProductAsync();
+                return Ok(new { success = true, data = products });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống." + ex.Message });
+            }
+        }
+
 
     }
 }
