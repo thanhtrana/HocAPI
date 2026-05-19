@@ -6,5 +6,6 @@ namespace HocApi.Interfaces.Repository
     {
         Task AddAsync(Product product);
         Task<IEnumerable<Product>> GetAllAsync();
+        Task<bool>DeleteAsync(int id);
     }
 }
