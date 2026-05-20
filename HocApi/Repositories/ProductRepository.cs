@@ -40,5 +40,20 @@ namespace HocApi.Repositories
 
         }
 
+       public async Task<Product?> GetByIdAsync(int id)
+       {
+            // Tìm sản phẩm có Id trùng với id truyền vào, nếu không thấy trả về null
+            return await _context.Products.FindAsync(id);
+       }
+
+       public async Task<bool> UpdateAsync(Product product)
+       {
+        // Báo cho Entity Framework biết là đối tượng product này đã có sự thay đổi
+            _context.Products.Update(product);
+            // Lưu thay đổi xuống SSMS và trả về true nếu có ít nhất 1 dòng dòng bị thay đổi
+            await _context.SaveChangesAsync();
+            return true;
+       }
+
     }
 }

@@ -9,5 +9,11 @@ namespace HocApi.Interfaces.Service
         Task<bool> AddProductAsync(AddProductViewModel model);
 
         Task<IEnumerable<ViewProductViewModel>> GetAllProductAsync();
+        Task<bool> DeleteAsync(int id);
+        Task<EditProductViewModel> GetByIdAsync(int id);
+        Task<bool> EditProductAsync(int id, EditProductViewModel model);
+
+
+
     }
 }

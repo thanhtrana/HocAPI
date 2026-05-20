@@ -1,5 +1,6 @@
 using HocApi.Interfaces.Service;
 using HocApi.ViewModels;
+using HocApi.ViewModels.Product;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HocApi.Controllers
@@ -23,7 +24,7 @@ namespace HocApi.Controllers
             return View();
         }
 
-        [HttpPost("create")]// Đường dẫn đầy đủ: POST api/product/create
+        [HttpPost("Add")]// Đường dẫn đầy đủ: POST api/product/create
         public async Task<IActionResult> CreateProduct([FromBody] AddProductViewModel model)
         {
             try
@@ -66,6 +67,73 @@ namespace HocApi.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống." + ex.Message });
             }
         }
+
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { success = false, message = "Id không hợp lệ" });
+                }
+                var isDeleted = await _productService.DeleteAsync(id);
+                if (isDeleted)
+                {
+                    return Ok(new { success = true, message = "Xóa sản phẩm thành công." });
+                }
+                return BadRequest(new { success = false, message = "Xóa sản phẩm thất bại." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống." + ex.Message });
+            }
+        }
+
+        [HttpGet("get-by-id/{id}")]
+        public async Task<IActionResult> GetByIdAsync(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest(new { success = false, message = "Id không hợp lệ" });
+                }
+                var product = await _productService.GetByIdAsync(id);
+                if (product == null)
+                {
+                    return BadRequest(new { success = false, message = "Không tìm thấy sản phẩm" });
+                }
+                return Ok(new { success = true, data = product });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống." + ex.Message });
+            }
+        }
+
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> EditProductAsync(int id, [FromBody] EditProductViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+                }
+                var isUpdated = await _productService.EditProductAsync(id, model);
+                if (isUpdated)
+                {
+                    return Ok(new { success = true, message = "Cập nhật sản phẩm thành công." });
+                }
+                return BadRequest(new { success = false, message = "Cập nhật sản phẩm thất bại." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống." + ex.Message });
+            }
+        }
+
 
 
     }
