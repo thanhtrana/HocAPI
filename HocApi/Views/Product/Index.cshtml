@@ -5,6 +5,9 @@
     ViewData["Title"] = "Quản lý sản phẩm";
 }
 
+<!-- Tích hợp SweetAlert2 để tạo các hộp thoại thông báo đẹp mắt -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     /* Scoped modern style framework using Plus Jakarta Sans */
     @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -474,11 +477,11 @@
     </div>
 </div>
 
-<!-- Add Product Modal Overlay -->
+<!-- Add/Edit Product Modal Overlay -->
 <div class="modal-overlay" id="productModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Thêm Sản Phẩm Mới</h3>
+            <h3 class="modal-title" id="modalTitle">Thêm Sản Phẩm Mới</h3>
             <button class="modal-close" onclick="closeModal()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -488,6 +491,9 @@
         </div>
         <div class="modal-body">
             <form id="productForm">
+                <!-- Hidden input to store product ID when editing -->
+                <input type="hidden" id="productId">
+
                 <div class="form-group">
                     <label for="name">Tên sản phẩm</label>
                     <input type="text" id="name" class="form-control" placeholder="Nhập tên sản phẩm..." required>
@@ -505,7 +511,7 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal()">Hủy bỏ</button>
-                    <button type="submit" class="btn-submit">Lưu sản phẩm</button>
+                    <button type="submit" class="btn-submit" id="btnSubmit">Lưu sản phẩm</button>
                 </div>
             </form>
         </div>
@@ -592,11 +598,22 @@
                 }
             }
             else{
-                alert(" Loi khi lay du lieu" + result.message);
+                Swal.fire({
+                    title: 'Lỗi',
+                    text: 'Lỗi khi lấy dữ liệu: ' + result.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         })
         .catch(error => {
-            console.error('Loi ajax',error);
+            console.error('Loi ajax', error);
+            Swal.fire({
+                title: 'Lỗi hệ thống',
+                text: 'Không thể kết nối đến server để lấy danh sách sản phẩm.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         });
     }
 
@@ -605,10 +622,53 @@
     let nextId = 1;
 
     // Modal Control Functions
-    function openModal() {
+    function openModal(id = null) {
         const modal = document.getElementById('productModal');
-        modal.classList.add('active');
-        document.getElementById('name').focus();
+        const form = document.getElementById('productForm');
+        form.reset();
+        document.getElementById('productId').value = '';
+
+        if (id === null) {
+            document.getElementById('modalTitle').innerText = "Thêm Sản Phẩm Mới";
+            document.getElementById('btnSubmit').innerText = "Lưu sản phẩm";
+            document.getElementById('btnSubmit').style.backgroundColor = "var(--success)";
+            modal.classList.add('active');
+            document.getElementById('name').focus();
+        } else {
+            document.getElementById('modalTitle').innerText = "Cập Nhật Sản Phẩm";
+            document.getElementById('btnSubmit').innerText = "Cập nhật";
+            document.getElementById('btnSubmit').style.backgroundColor = "var(--primary)";
+            
+            fetch(`/product/get-by-id/${id}`)
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success && result.data) {
+                        const product = result.data;
+                        document.getElementById('productId').value = product.id;
+                        document.getElementById('name').value = product.name;
+                        document.getElementById('price').value = product.price;
+                        document.getElementById('quantity').value = product.quantity;
+                        modal.classList.add('active');
+                        document.getElementById('name').focus();
+                    } else {
+                        Swal.fire({
+                            title: 'Lỗi',
+                            text: result.message || 'Không thể lấy thông tin sản phẩm',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire({
+                        title: 'Lỗi hệ thống',
+                        text: 'Không lấy được thông tin từ máy chủ.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+        }
     }
 
     function closeModal() {
@@ -750,30 +810,55 @@
 
     // Placeholder actions for CRUD (User will fully customize later)
     function editProduct(id) {
-        showNotification(`Chức năng Sửa cho sản phẩm SP-${String(id).padStart(4, '0')} sẽ được xử lý tại CRUD backend!`, 'success');
+        openModal(id);
     }
 
     function deleteProduct(id) {
-        if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?")) {
-                
-                // Gửi lệnh Ajax với phương thức DELETE, truyền id trực tiếp lên URL
-                fetch(`/api/product/delete/${id}`, {
+        Swal.fire({
+            title: 'Bạn có chắc chắn muốn xóa sản phẩm này không?',
+            text: "Bạn sẽ không thể hoàn tác hành động này!",
+            icon: 'warning',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            reverseButtons: true
+        })
+        .then(result => {
+            if (result.isConfirmed) {
+                fetch(`/product/delete/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message);
-                        loadProducts(); // <--- Xóa xong thành công thì gọi lại hàm này để bảng tự động biến mất sản phẩm đó!
+                        Swal.fire({
+                            title: 'Thành công',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                        loadProducts();
                     } else {
-                        alert("Thất bại: " + data.message);
+                        Swal.fire({
+                            title: 'Thất bại',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     }
                 })
                 .catch(error => {
-                    console.error('Lỗi Ajax khi xóa:', error);
-                    alert("Có lỗi xảy ra khi xóa dữ liệu!");
+                    Swal.fire({
+                        title: 'Lỗi hệ thống',
+                        text: 'Đã có lỗi xảy ra vui lòng thử lại sau',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 });
             }
+        });
     }
 
     // Submit product form via AJAX
@@ -781,12 +866,18 @@
         e.preventDefault();
 
         // 1. Gather form values
+        const idVal = document.getElementById('productId').value;
         const nameVal = document.getElementById('name').value.trim();
         const priceVal = parseFloat(document.getElementById('price').value);
         const quantityVal = parseInt(document.getElementById('quantity').value);
 
         if (!nameVal || isNaN(priceVal) || isNaN(quantityVal)) {
-            showNotification("Vui lòng điền đầy đủ và đúng thông tin!", "danger");
+            Swal.fire({
+                title: 'Cảnh báo',
+                text: "Vui lòng điền đầy đủ và đúng thông tin!",
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
             return;
         }
 
@@ -796,9 +887,17 @@
             quantity: quantityVal
         };
 
+        const isEdit = idVal !== '';
+        const url = isEdit ? `/product/update/${idVal}` : '/product/Add';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        if (isEdit) {
+            productData.id = parseInt(idVal);
+        }
+
         // 2. AJAX Fetch call
-        fetch('/product/create', {
-            method: 'POST',
+        fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -812,26 +911,37 @@
         })
         .then(data => {
             if (data.success) {
-                // Success: close modal, clear inputs, toast notification, dynamic append
+                // Success: close modal, clear inputs, swal notification, dynamic reload
                 closeModal();
                 document.getElementById('productForm').reset();
-                showNotification(data.message || "Đã thêm sản phẩm thành công!");
+                document.getElementById('productId').value = '';
                 
-                // Add to internal list state to display instantly in table
-                products.push({
-                    id: nextId++,
-                    name: productData.name,
-                    price: productData.price,
-                    quantity: productData.quantity
+                Swal.fire({
+                    title: 'Thành công',
+                    text: data.message || (isEdit ? "Cập nhật sản phẩm thành công!" : "Đã thêm sản phẩm thành công!"),
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
-                updateProductTable();
+                
+                loadProducts();
             } else {
-                showNotification(data.message || "Thêm sản phẩm thất bại!", "danger");
+                Swal.fire({
+                    title: 'Thất bại',
+                    text: data.message || (isEdit ? "Cập nhật sản phẩm thất bại!" : "Thêm sản phẩm thất bại!"),
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         })
         .catch(error => {
             console.error('AJAX Error:', error);
-            showNotification("Không thể kết nối đến server hoặc có lỗi xảy ra!", "danger");
+            Swal.fire({
+                title: 'Lỗi',
+                text: "Không thể kết nối đến server hoặc có lỗi xảy ra!",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         });
     });
 
