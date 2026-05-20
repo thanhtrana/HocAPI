@@ -514,7 +514,7 @@
 
 <script>
 
-    document.AddEventListener("DOMContentLoaded", function(){
+    document.addEventListener("DOMContentLoaded", function(){
         loadProducts();
     });
 
@@ -527,12 +527,77 @@
             if (result.success){
                 const tbody = document.getElementById('productTableBody');
                 tbody.innerHTML = '';
+                
+                // Đồng bộ mảng products
+                products.length = 0;
+
                 if(result.data.length === 0){
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:10px;">Chưa có sản phẩm nào trong database!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px;">Chưa có sản phẩm nào trong database!</td></tr>';
                     return;
                 }
+
+                result.data.forEach(product => {
+                    // Đẩy vào mảng chung
+                    products.push(product);
+
+                    const formattedPrice = new Intl.NumberFormat('vi-VN', { 
+                        style: 'currency', 
+                        currency: 'VND' 
+                    }).format(product.price);
+
+                    let qtyBadgeClass = 'instock';
+                    let qtyText = `Còn hàng (${product.quantity})`;
+
+                    if (product.quantity <= 0) {
+                        qtyBadgeClass = 'outofstock';
+                        qtyText = 'Hết hàng';
+                    } else if (product.quantity < 5) {
+                        qtyBadgeClass = 'lowstock';
+                        qtyText = `Sắp hết (${product.quantity})`;
+                    }
+
+                    // Tự vẽ HTML đầy đủ 5 cột (bao gồm cả cột thao tác)
+                    const row = ` 
+                    <tr id="product-row-${product.id}">
+                        <td><span class="badge-id">SP-${String(product.id).padStart(4, '0')}</span></td>
+                        <td style="font-weight: 600; color: #0f172a;">${escapeHtml(product.name)}</td>
+                        <td><span class="badge-price">${formattedPrice}</span></td>
+                        <td><span class="badge-qty ${qtyBadgeClass}">${qtyText}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-edit" title="Sửa sản phẩm" onclick="editProduct(${product.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button class="btn-action btn-delete" title="Xóa sản phẩm" onclick="deleteProduct(${product.id})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                if (products.length > 0) {
+                    const maxId = Math.max(...products.map(p => p.id));
+                    nextId = maxId + 1;
+                }
+            }
+            else{
+                alert(" Loi khi lay du lieu" + result.message);
             }
         })
+        .catch(error => {
+            console.error('Loi ajax',error);
+        });
     }
 
     // State to hold newly added products dynamically
@@ -689,14 +754,26 @@
     }
 
     function deleteProduct(id) {
-        const index = products.findIndex(p => p.id === id);
-        if (index !== -1) {
-            if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm SP-${String(id).padStart(4, '0')}?`)) {
-                products.splice(index, 1);
-                updateProductTable();
-                showNotification(`Đã xóa sản phẩm thành công!`, 'success');
+        if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?")) {
+                
+                // Gửi lệnh Ajax với phương thức DELETE, truyền id trực tiếp lên URL
+                fetch(`/api/product/delete/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        loadProducts(); // <--- Xóa xong thành công thì gọi lại hàm này để bảng tự động biến mất sản phẩm đó!
+                    } else {
+                        alert("Thất bại: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi Ajax khi xóa:', error);
+                    alert("Có lỗi xảy ra khi xóa dữ liệu!");
+                });
             }
-        }
     }
 
     // Submit product form via AJAX
