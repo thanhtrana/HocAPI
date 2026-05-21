@@ -441,6 +441,14 @@
         color: var(--success);
         flex-shrink: 0;
     }
+
+    .form-group span[id$="Error"] {
+        color: #dc2626; /* Màu đỏ cảnh báo */
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: block;
+        font-weight: 500;
+    }
 </style>
 
 <div class="product-app-container">
@@ -490,23 +498,26 @@
             </button>
         </div>
         <div class="modal-body">
-            <form id="productForm">
+            <form id="productForm" novalidate>
                 <!-- Hidden input to store product ID when editing -->
                 <input type="hidden" id="productId">
 
                 <div class="form-group">
                     <label for="name">Tên sản phẩm</label>
                     <input type="text" id="name" class="form-control" placeholder="Nhập tên sản phẩm..." required>
+                    <span id="nameError"></span>
                 </div>
 
                 <div class="form-group">
                     <label for="price">Giá sản phẩm (VNĐ)</label>
                     <input type="number" id="price" min="0" step="any" class="form-control" placeholder="Nhập giá..." required>
+                    <span id="priceError"></span>
                 </div>
 
                 <div class="form-group">
                     <label for="quantity">Số lượng</label>
                     <input type="number" id="quantity" min="0" class="form-control" placeholder="Nhập số lượng..." required>
+                    <span id="quantityError"></span>
                 </div>
 
                 <div class="form-actions">
@@ -865,26 +876,69 @@
     document.getElementById('productForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
+        document.getElementById('nameError').innerText = "";
+        document.getElementById('priceError').innerText = "";
+        document.getElementById('quantityError').innerText = "";
+
         // 1. Gather form values
         const idVal = document.getElementById('productId').value;
         const nameVal = document.getElementById('name').value.trim();
-        const priceVal = parseFloat(document.getElementById('price').value);
-        const quantityVal = parseInt(document.getElementById('quantity').value);
+        const priceVal = document.getElementById('price').value.trim();
+        const quantityVal = document.getElementById('quantity').value.trim();
 
-        if (!nameVal || isNaN(priceVal) || isNaN(quantityVal)) {
-            Swal.fire({
-                title: 'Cảnh báo',
-                text: "Vui lòng điền đầy đủ và đúng thông tin!",
-                icon: 'warning',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
+
+  
+
+        // if (!nameVal || isNaN(priceVal) || isNaN(quantityVal)) {
+        //     Swal.fire({
+        //         title: 'Cảnh báo',
+        //         text: "Vui lòng điền đầy đủ và đúng thông tin!",
+        //         icon: 'warning',
+        //         confirmButtonText: 'OK'
+        //     });
+        //     return;
+        // }
+
+        let isValid = true;
+// 3. TIẾN HÀNH KIỂM TRA ĐIỀU KIỆN (VALIDATION LOGIC)
+    if (nameVal === "") {
+        document.getElementById('nameError').innerText = "Tên sản phẩm không được để trống.";
+        isValid = false;
+    } else if (nameVal.length > 100) {
+        document.getElementById('nameError').innerText = "Tên sản phẩm không được vượt quá 100 ký tự.";
+        isValid = false;
+    }
+
+    if (priceVal === "") {
+        document.getElementById('priceError').innerText = "Giá sản phẩm không được để trống.";
+        isValid = false;
+    } else if (parseFloat(priceVal) < 1000 || parseFloat(priceVal) > 100000000) {
+        document.getElementById('priceError').innerText = "Giá phải từ 1.000đ đến 100.000.000đ.";
+        isValid = false;
+    }
+
+    if (quantityVal === "") {
+        document.getElementById('quantityError').innerText = "Số lượng không được để trống.";
+        isValid = false;
+    } else if (parseInt(quantityVal) < 1 || parseInt(quantityVal) > 1000) {
+        document.getElementById('quantityError').innerText = "Số lượng phải từ 1 đến 1.000 chiếc.";
+        isValid = false;
+    }
+        
+        if (!isValid) {
+        return; 
+    }
+
+
+                function clearErrror() {
+                    document.getElementById('nameError').innerText = "";
+                    
+                }
 
         const productData = {
             name: nameVal,
-            price: priceVal,
-            quantity: quantityVal
+            price: parseFloat(priceVal),
+            quantity: parseInt(quantityVal, 10)
         };
 
         const isEdit = idVal !== '';
