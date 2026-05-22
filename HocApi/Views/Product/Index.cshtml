@@ -533,6 +533,11 @@
 
     document.addEventListener("DOMContentLoaded", function(){
         loadProducts();
+
+        // Tự động ẩn thông báo lỗi đỏ khi người dùng gõ nhập liệu
+        document.getElementById('name').addEventListener('input', () => document.getElementById('nameError').innerText = "");
+        document.getElementById('price').addEventListener('input', () => document.getElementById('priceError').innerText = "");
+        document.getElementById('quantity').addEventListener('input', () => document.getElementById('quantityError').innerText = "");
     });
 
     function loadProducts(){
@@ -639,6 +644,7 @@
         form.reset();
         document.getElementById('productId').value = '';
 
+
         if (id === null) {
             document.getElementById('modalTitle').innerText = "Thêm Sản Phẩm Mới";
             document.getElementById('btnSubmit').innerText = "Lưu sản phẩm";
@@ -685,6 +691,7 @@
     function closeModal() {
         const modal = document.getElementById('productModal');
         modal.classList.remove('active');
+        clearErrors();
     }
 
     // Modal click-outside handler
@@ -703,6 +710,13 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        document.getElementById('nameError').innerText = "";
+        document.getElementById('priceError').innerText = "";
+        document.getElementById('quantityError').innerText = "";
     }
 
     // Re-render Table based on internal state
@@ -818,8 +832,6 @@
             setTimeout(() => toast.remove(), 300);
         }, 3500);
     }
-
-    // Placeholder actions for CRUD (User will fully customize later)
     function editProduct(id) {
         openModal(id);
     }
@@ -876,9 +888,7 @@
     document.getElementById('productForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
-        document.getElementById('nameError').innerText = "";
-        document.getElementById('priceError').innerText = "";
-        document.getElementById('quantityError').innerText = "";
+        clearErrors();
 
         // 1. Gather form values
         const idVal = document.getElementById('productId').value;
@@ -929,11 +939,6 @@
         return; 
     }
 
-
-                function clearErrror() {
-                    document.getElementById('nameError').innerText = "";
-                    document.get
-                }
 
         const productData = {
             name: nameVal,
