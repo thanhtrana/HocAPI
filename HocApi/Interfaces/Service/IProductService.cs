@@ -13,6 +13,7 @@ namespace HocApi.Interfaces.Service
         Task<EditProductViewModel> GetByIdAsync(int id);
         Task<bool> EditProductAsync(int id, EditProductViewModel model);
 
+        Task<IEnumerable<ViewProductViewModel>> SearchProductAsync(string keyword);
 
 
     }

@@ -134,7 +134,20 @@ namespace HocApi.Controllers
             }
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string? keyword)
+        {
+            try
+            {
+                var result = await _productService.SearchProductAsync(keyword ?? string.Empty);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống." + ex.Message });
 
+            }
+        }
 
     }
 }

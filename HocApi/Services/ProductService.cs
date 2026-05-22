@@ -29,9 +29,9 @@ namespace HocApi.Services
             {
                 throw new ArgumentException("Giá không được âm", nameof(model.Price));
             }
-            if(model.Quantity<0)
+            if (model.Quantity < 0)
             {
-                throw new ArgumentException("Số lượng không được âm",nameof(model.Quantity));
+                throw new ArgumentException("Số lượng không được âm", nameof(model.Quantity));
             }
 
 
@@ -89,21 +89,21 @@ namespace HocApi.Services
         public async Task<bool> EditProductAsync(int id, EditProductViewModel model)
         {
 
-            if(string.IsNullOrWhiteSpace(model.Name))
+            if (string.IsNullOrWhiteSpace(model.Name))
             {
                 throw new ArgumentException("Tên không được để trống", nameof(model.Name));
             }
-            if(model.Name.Length>100)
+            if (model.Name.Length > 100)
             {
                 throw new ArgumentException("Tên không được vượt quá 100 ký tự", nameof(model.Name));
             }
-            if(model.Price<0)
+            if (model.Price < 0)
             {
                 throw new ArgumentException("Giá không được âm", nameof(model.Price));
             }
-            if(model.Quantity<0)
+            if (model.Quantity < 0)
             {
-                throw new ArgumentException("Số lượng không được âm",nameof(model.Quantity));
+                throw new ArgumentException("Số lượng không được âm", nameof(model.Quantity));
             }
 
 
@@ -119,6 +119,22 @@ namespace HocApi.Services
 
             return await _productRepository.UpdateAsync(existingProduct);
         }
+
+
+
+        public async Task<IEnumerable<ViewProductViewModel>> SearchProductAsync(string keyword)
+        {
+            var products = await _productRepository.SearchByNameAsync(keyword);
+
+            return products.Select(p => new ViewProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Quantity = p.Quantity
+            });
+        }
+
 
 
 

@@ -25,13 +25,15 @@ namespace HocApi.Repositories
             return await _context.Products.ToListAsync();
         }
 
-        public async Task<bool>DeleteAsync(int id){
+        public async Task<bool> DeleteAsync(int id)
+        {
             var product = await _context.Products.FindAsync(id);
             //FindAsync : là phương thức của Entity Framework tìm kiếm bản ghi dựa vào khoá chính 
             // hoặc tổ hợp các thuộc tính được cấu hình làm khoá chính
             // TRẢ VỀ BẢN GHI TÌM ĐƯỢC HOẶC NULL NẾU KHÔNG TÌM THẤY.
             // NÓ SẼ CỐ GẮNG TÌM TRONG DB CONTEXT THAY VÌ GỌI DB
-            if(product == null){
+            if (product == null)
+            {
                 return false;
             }
             _context.Products.Remove(product);
@@ -40,20 +42,38 @@ namespace HocApi.Repositories
 
         }
 
-       public async Task<Product?> GetByIdAsync(int id)
-       {
+        public async Task<Product?> GetByIdAsync(int id)
+        {
             // Tìm sản phẩm có Id trùng với id truyền vào, nếu không thấy trả về null
             return await _context.Products.FindAsync(id);
-       }
+        }
 
-       public async Task<bool> UpdateAsync(Product product)
-       {
-        // Báo cho Entity Framework biết là đối tượng product này đã có sự thay đổi
+        public async Task<bool> UpdateAsync(Product product)
+        {
+            // Báo cho Entity Framework biết là đối tượng product này đã có sự thay đổi
             _context.Products.Update(product);
             // Lưu thay đổi xuống SSMS và trả về true nếu có ít nhất 1 dòng dòng bị thay đổi
             await _context.SaveChangesAsync();
             return true;
-       }
+        }
+
+
+        public async Task<IEnumerable<Product>> SearchByNameAsync(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return await _context.Products.ToListAsync();
+            }
+            var lowerKeyword = keyword.ToLower();
+
+            return await _context.Products
+                .Where(p => p.Name.ToLower().Contains(lowerKeyword)
+                || p.Price.ToString().Contains(lowerKeyword)
+                || p.Quantity.ToString().Contains(lowerKeyword))
+                .ToListAsync();
+
+        }
+
 
     }
 }
